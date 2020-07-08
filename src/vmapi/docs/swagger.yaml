@@ -1,0 +1,398 @@
+basePath: /api/v1
+definitions:
+  model.Err:
+    properties:
+      error:
+        type: integer
+      message:
+        type: object
+    type: object
+  model.IPS:
+    items:
+      type: string
+    type: array
+  model.NET:
+    properties:
+      network:
+        type: string
+    type: object
+  model.OP:
+    properties:
+      operator:
+        type: string
+    type: object
+  model.Res:
+    properties:
+      error:
+        type: integer
+      message:
+        type: object
+    type: object
+  model.VM:
+    properties:
+      name:
+        type: string
+      state:
+        type: string
+    type: object
+  model.VMC:
+    properties:
+      cpu:
+        type: integer
+      dns:
+        items:
+          type: string
+        type: array
+      gateway:
+        type: string
+      id:
+        type: integer
+      ip:
+        type: string
+      memory:
+        type: string
+      name:
+        type: string
+      netmask:
+        type: string
+      status:
+        type: string
+      uuid:
+        type: string
+    type: object
+  model.VMDetail:
+    properties:
+      cpu:
+        type: string
+      gateway:
+        type: string
+      image:
+        type: string
+      ip:
+        type: string
+      mask:
+        type: string
+      mem:
+        type: string
+      name:
+        type: string
+      pyhIp:
+        type: string
+    type: object
+  model.VMS:
+    items:
+      $ref: '#/definitions/model.VM'
+    type: array
+info:
+  contact: {}
+  description: Virtual Machine Api
+  license: {}
+  title: Virtual Machine Api
+  version: "1.0"
+paths:
+  /host/{host}:
+    get:
+      consumes:
+      - application/json
+      description: Host Monitor
+      parameters:
+      - description: HOST
+        in: path
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Host Monitor
+      tags:
+      - HOSTS
+  /hosts/vm/{host}:
+    get:
+      consumes:
+      - application/json
+      description: Host VM Detail
+      parameters:
+      - description: HOST
+        in: path
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Host VM Detail
+      tags:
+      - HOSTS
+  /ips:
+    get:
+      consumes:
+      - application/json
+      description: Get ip pool
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.IPS'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Get ip pool
+      tags:
+      - IPS
+    post:
+      consumes:
+      - application/json
+      description: Create ip pool
+      parameters:
+      - description: IP地址段
+        in: body
+        name: net
+        required: true
+        schema:
+          $ref: '#/definitions/model.NET'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Create ip pool
+      tags:
+      - IPS
+  /ips/{ip}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a ip from ip pool
+      parameters:
+      - description: IP
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Remove a ip from ip pool
+      tags:
+      - IPS
+    put:
+      consumes:
+      - application/json
+      description: Append a ip to ip pool
+      parameters:
+      - description: IP
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Append a ip to ip pool
+      tags:
+      - IPS
+  /vms:
+    post:
+      consumes:
+      - application/json
+      description: Create a vm
+      parameters:
+      - description: vm
+        in: body
+        name: vm
+        required: true
+        schema:
+          $ref: '#/definitions/model.VMDetail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Create a vm
+      tags:
+      - VMS
+  /vms/{phy}:
+    get:
+      consumes:
+      - application/json
+      description: Get all vms
+      parameters:
+      - description: 物理机IP
+        in: path
+        name: phy
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.VMS'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Get all vms
+      tags:
+      - VMS
+  /vms/{phy}/{vm}:
+    delete:
+      consumes:
+      - application/json
+      description: Shutdown a vm
+      parameters:
+      - description: 强制关机
+        in: header
+        name: Force
+        type: boolean
+      - description: 物理机IP
+        in: path
+        name: phy
+        required: true
+        type: string
+      - description: 虚拟机NAME
+        in: path
+        name: vm
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.Err'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Shutdown a vm
+      tags:
+      - VMS
+    get:
+      consumes:
+      - application/json
+      description: Get a vm detail
+      parameters:
+      - description: 物理机IP
+        in: path
+        name: phy
+        required: true
+        type: string
+      - description: 虚拟机NAME
+        in: path
+        name: vm
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.VMC'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.Err'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Get a vm detail
+      tags:
+      - VMS
+    put:
+      consumes:
+      - application/json
+      description: Controller a vm
+      parameters:
+      - description: 操作
+        in: body
+        name: operator
+        schema:
+          $ref: '#/definitions/model.OP'
+      - description: 物理机IP
+        in: path
+        name: phy
+        required: true
+        type: string
+      - description: 虚拟机NAME
+        in: path
+        name: vm
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Res'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Err'
+      summary: Controller a vm
+      tags:
+      - VMS
+schemes:
+- http
+swagger: "2.0"
