@@ -198,7 +198,7 @@ func kvmNet(vm *model.VMDetail) error {
 	net.NETMASK = vm.NETMASK
 	net.GATEWAY = vm.GATEWAY
 	var buf bytes.Buffer
-	if err := temp.Execute(&buf, &net); err != nil {
+	if err := temp.Execute(&buf, net); err != nil {
 		return err
 	}
 	if err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
