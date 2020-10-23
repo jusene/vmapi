@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -31,19 +30,16 @@ func HOSTDetail(ctx *gin.Context) {
 		return
 	}
 
-	sshClient := module.SSHConnect(phy, "root", "dd@2019", 22)
-	defer sshClient.Close()
-	// 创建ssh-session
-	session, _ := sshClient.NewSession()
-	defer session.Close()
+	ret, err := module.SSHExec(phy, "root", "dd@2019", 22, "python /tmp/sys.py")
+	if err != nil {
+		ctx.JSON(200, model.Err{
+			Error:   200,
+			Message: "",
+		})
+	}
 
-	var stdOut, stdErr bytes.Buffer
-	session.Stdout = &stdOut
-	session.Stderr = &stdErr
-
-	session.Run("python /tmp/sys.py")
 	var sys model.SYS
-	json.Unmarshal(stdOut.Bytes(), &sys)
+	json.Unmarshal([]byte(ret), &sys)
 	ctx.JSON(200, sys)
 }
 

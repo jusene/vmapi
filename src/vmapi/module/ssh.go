@@ -25,13 +25,18 @@ func SSHConnect(host, username, password string, port int) *ssh.Client {
 	return sshClient
 }
 
-func SSHExec(host, username, password string, port int, command string) error {
+func SSHExec(host, username, password string, port int, command string) (string, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("捕获错误: %s", r)
+		}
+	}()
 	sshClient := SSHConnect(host, username, password, port)
 	defer sshClient.Close()
 	// 创建ssh-session
 	session, err := sshClient.NewSession()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer session.Close()
 
@@ -42,13 +47,18 @@ func SSHExec(host, username, password string, port int, command string) error {
 	session.Run(command)
 	if stdErr.String() != "" {
 		// log.Fatal("err: ", stdErr.String())
-		return errors.New(stdErr.String())
+		return "", errors.New(stdErr.String())
 	}
 	//log.Println(stdOut.String())
-	return nil
+	return stdOut.String(), nil
 }
 
 func SFTPut(host, username, password string, port int, src, dest string)  error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("捕获错误: %s", r)
+		}
+	}()
 	sshClient := SSHConnect(host, username, password, port)
 	defer sshClient.Close()
 

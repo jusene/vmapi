@@ -6,6 +6,6 @@ type Err struct {
 }
 
 type Res struct {
-	Error int `json:"error"`
+	Code int `json:"code"`
 	Message interface{} `json:"message"`
 }

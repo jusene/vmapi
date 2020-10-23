@@ -38,13 +38,16 @@ func main() {
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.Run(":8998")
+	if err := router.Run(":8998"); err != nil {
+		panic(err)
+	}
 }
 
 func Cors() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		context.Header("Access-Control-Allow-Origin", "*")
-		context.Header("Server", "GIN")
+		context.Header("Server", "GIN/1.6.3")
+		context.Header("Access-Control-Request-Method", "POST, GET, OPTIONS, DELETE, PUT")
 		context.Next()
 	}
 }

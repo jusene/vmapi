@@ -85,7 +85,7 @@ func IPSCreate(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, model.Res{
-		Error:   200,
+		Code:   200,
 		Message: "ip pool create ok!",
 	})
 }
@@ -142,7 +142,7 @@ func IPRemove(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, model.Res{
-		Error:   200,
+		Code:   200,
 		Message: fmt.Sprintf("%s remove pool ok!", ip),
 	})
 }
@@ -196,7 +196,7 @@ func IPAppend(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, model.Res{
-		Error:   200,
+		Code:   200,
 		Message: fmt.Sprintf("%s append pool ok!", ip),
 	})
 }

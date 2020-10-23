@@ -128,7 +128,7 @@ func VMCreate(ctx *gin.Context) {
 		return
 	}
 	// 创建镜像并定义虚拟机
-	if err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
+	if _, err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
 		fmt.Sprintf("/usr/bin/qemu-img create -f qcow2 -b %s %s",
 			strings.Join([]string{filepath.Dir(kvm.IMAGE), "model.qcow2"}, "/"), kvm.IMAGE)); err != nil {
 		ctx.JSON(500, model.Err{
@@ -182,7 +182,7 @@ func VMCreate(ctx *gin.Context) {
 	}
 
 	ctx.JSON(201, model.Res{
-		Error:   201,
+		Code:   201,
 		Message: fmt.Sprintf("%s create ok", vm.NAME),
 	})
 }
@@ -201,7 +201,7 @@ func kvmNet(vm *model.VMDetail) error {
 	if err := temp.Execute(&buf, net); err != nil {
 		return err
 	}
-	if err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
+	if _, err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
 		fmt.Sprintf("mkdir -p /ddhome/kvm/config/%s", vm.NAME)); err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func kvmNet(vm *model.VMDetail) error {
 		fmt.Sprintf("/ddhome/kvm/config/%s/ifcfg-eth0", vm.NAME)); err != nil {
 		return err
 	}
-	if err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
+	if _, err = module.SSHExec(vm.PhyIP, "root", "dd@2019", 22,
 		fmt.Sprintf("/usr/bin/virt-copy-in -d %s /ddhome/kvm/config/%s/ifcfg-eth0 /etc/sysconfig/network-scripts", vm.NAME, vm.NAME)); err != nil {
 		return err
 	}
@@ -382,27 +382,27 @@ func VMDelete(ctx *gin.Context) {
 		return b
 	}() {
 		if err := domInfo.Destroy(); err != nil {
-			ctx.JSON(500, model.Res{
+			ctx.JSON(500, model.Err{
 				Error:   500,
 				Message: fmt.Sprintf("%s force shutoff error!", vm),
 			})
 			return
 		}
 		ctx.JSON(200, model.Res{
-			Error:   200,
+			Code:   200,
 			Message: fmt.Sprintf("%s force shutoff ok!", vm),
 		})
 		return
 	} else if info.State == libvirt.DOMAIN_RUNNING {
 		if err := domInfo.Shutdown(); err != nil {
-			ctx.JSON(500, model.Res{
+			ctx.JSON(500, model.Err{
 				Error:   500,
 				Message: fmt.Sprintf("%s shutoff error!", vm),
 			})
 			return
 		}
 		ctx.JSON(200, model.Res{
-			Error:   200,
+			Code:   200,
 			Message: fmt.Sprintf("%s shutoff ok!", vm),
 		})
 		return
@@ -465,7 +465,7 @@ func VMController(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(200, model.Res{
-			Error:   200,
+			Code:   200,
 			Message: fmt.Sprintf("%s reboot ok!", vm),
 		})
 		return
@@ -488,6 +488,7 @@ func VMController(ctx *gin.Context) {
 		}
 	}
 
+	var finalRes []model.Res
 	if op.OPERATOR == "delete" {
 		if err := domInfo.Undefine(); err != nil {
 			ctx.JSON(500, model.Err{
@@ -497,7 +498,12 @@ func VMController(ctx *gin.Context) {
 			return
 		}
 
-		if err = module.SSHExec(phy, "root", "dd@2019", 22,
+		finalRes = append(finalRes, model.Res{
+			Code:    200,
+			Message: fmt.Sprintf("%s undefine ok", vm),
+		})
+
+		if _, err = module.SSHExec(phy, "root", "dd@2019", 22,
 			fmt.Sprintf("rm -rf /ddhome/kvm/images/%s.qcow2", vm)); err != nil {
 			ctx.JSON(500, model.Err{
 				Error:   500,
@@ -506,7 +512,12 @@ func VMController(ctx *gin.Context) {
 			return
 		}
 
-		if err = module.SSHExec(phy, "root", "dd@2019", 22,
+		finalRes = append(finalRes, model.Res{
+			Code:    200,
+			Message: fmt.Sprintf("delete %s.qcow2 ok", vm),
+		})
+
+		if _, err = module.SSHExec(phy, "root", "dd@2019", 22,
 			fmt.Sprintf("rm -rf /ddhome/kvm/config/%s", vm)); err != nil {
 			{
 				ctx.JSON(500, model.Err{
@@ -515,12 +526,15 @@ func VMController(ctx *gin.Context) {
 				})
 				return
 			}
+
 		}
 
-		ctx.JSON(200, model.Err{
-			Error:   200,
-			Message: fmt.Sprintf("delete %s ok", vm),
+		finalRes = append(finalRes, model.Res{
+			Code:    200,
+			Message: "delete network config ok",
 		})
+
+		ctx.JSON(200, finalRes)
 	}
 
 	// 开启操作
@@ -532,8 +546,8 @@ func VMController(ctx *gin.Context) {
 			})
 			return
 		}
-		ctx.JSON(200, model.Err{
-			Error:   200,
+		ctx.JSON(200, model.Res{
+			Code:   200,
 			Message: fmt.Sprintf("%s start ok", vm),
 		})
 	}
